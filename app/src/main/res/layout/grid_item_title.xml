@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
+    android:layout_height="match_parent"
     android:gravity="center_vertical"
-    android:id="@+id/grid_item_title_textview">
+    android:adjustViewBounds="true"
+    android:id="@+id/grid_item_title_textview"
+    android:padding="2dp">
 
-</TextView>
+</ImageView>

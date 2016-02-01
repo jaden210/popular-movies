@@ -17,8 +17,11 @@
     <GridView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
         android:id="@+id/gridview_title"
-        android:numColumns="2" />
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:paddingTop="40dp"/>
 
 
 </FrameLayout>

@@ -14,8 +14,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
+import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -23,6 +27,7 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_detail);
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -53,8 +58,8 @@ public class DetailActivity extends AppCompatActivity {
 
     public static class DetailFragment extends Fragment {
 
+        private static final String MOVIE = "Movie";
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
-
         private static final String SHARE_HASHTAG = " #SunshineApp";
         private String mDetailStr;
 
@@ -62,18 +67,7 @@ public class DetailActivity extends AppCompatActivity {
             setHasOptionsMenu(true);
         }
 
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            Intent intent = getActivity().getIntent();
-            View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-            if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
-                mDetailStr = intent.getStringExtra(Intent.EXTRA_TEXT);
-                ((TextView) rootView.findViewById(R.id.detail_text))
-                        .setText(mDetailStr);
-            }
-            return rootView;
-        }
+
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -114,6 +108,42 @@ public class DetailActivity extends AppCompatActivity {
             }
 
             return super.onOptionsItemSelected(item);
+        }
+
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            Intent intent = getActivity().getIntent();
+            View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+
+            if (intent != null && intent.hasExtra("movie")) {
+                Movie movie = intent.getParcelableExtra("movie");
+                String movieTitle = movie.getTitle();
+                String movieImage = movie.getImage();
+                String movieDescription = movie.getDescription();
+                String movieRating = movie.getRating();
+                String movieRelease = movie.getRelease();
+
+                ((TextView) rootView.findViewById(R.id.movie_title))
+                        .setText(movieTitle);
+                Log.v(LOG_TAG,"Movie Data: " + movieTitle);
+
+                ImageView image = ((ImageView) rootView.findViewById(R.id.movie_image));
+                Picasso.with(getActivity()).load(movieImage).into(image);
+
+                ((TextView) rootView.findViewById(R.id.movie_description))
+                        .setText(movieDescription);
+
+                ((TextView) rootView.findViewById(R.id.movie_rating))
+                        .setText(movieRating);
+
+                ((TextView) rootView.findViewById(R.id.movie_release))
+                        .setText(movieRelease);
+            } else {
+                Toast.makeText(getContext(), "FAIL",Toast.LENGTH_SHORT).show();
+            }
+            return rootView;
         }
     }
 }

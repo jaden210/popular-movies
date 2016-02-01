@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -41,7 +42,9 @@ import java.util.List;
  */
 public class MainActivityFragment extends Fragment {
 
-    private ArrayAdapter<String> mTitleAdapter;
+    private MovieAdapter mAdapter;
+    private GridView gridView;
+    private ArrayList<Movie> mData;
 
     public MainActivityFragment() {
     }
@@ -62,39 +65,29 @@ public class MainActivityFragment extends Fragment {
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
             updateTitles();
-            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        mTitleAdapter = new ArrayAdapter<String>(
-                //current context
-                getActivity(),
-                //grid item ID
-                R.layout.grid_item_title,
-                //textview ID
-                R.id.grid_item_title_textview,
-                //dataset
-                new ArrayList<String>());
-
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        gridView = (GridView) rootView.findViewById(R.id.gridview_title);
+        mData = new ArrayList<>();
+        mAdapter = new MovieAdapter(getActivity(),R.layout.grid_item_title, mData);
+        gridView.setAdapter(mAdapter);
 
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridview_title);
-        gridView.setAdapter(mTitleAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String detail = mTitleAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, detail);
+                Toast.makeText(getActivity(),"CLICK",Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                Movie movie = mAdapter.getItem(position);
+                intent.putExtra("movie", movie);
                 startActivity(intent);
             }
         });
-
 
         return rootView;
     }
@@ -103,7 +96,7 @@ public class MainActivityFragment extends Fragment {
     private void updateTitles() {
         FetchTitleTask titleTask = new FetchTitleTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sort_by = prefs.getString(getString(R.string.pref_sort_by_key),getString(R.string.pref_sort_by_default));
+        String sort_by = prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default));
         titleTask.execute(sort_by);
     }
 
@@ -115,13 +108,13 @@ public class MainActivityFragment extends Fragment {
     }
 
 
-    public class FetchTitleTask extends AsyncTask<String, Void, String[]> {
+    public class FetchTitleTask extends AsyncTask<String, Void, ArrayList<Movie>> {
 
         private final String LOG_TAG = FetchTitleTask.class.getSimpleName();
 
 
         //Parsing is done here
-        private String[] getTitleDataFromJson(String titleJsonStr)
+        private ArrayList<Movie> getTitleDataFromJson(String titleJsonStr)
                 throws JSONException {
 
             //Names of JSON to extract
@@ -131,12 +124,10 @@ public class MainActivityFragment extends Fragment {
             final String RELEASE = "release_date";
             final String DESCRIPTION = "overview";
             final String RATING = "vote_average";
-            final String numResults = "20";
 
             JSONObject titleJson = new JSONObject(titleJsonStr);
             JSONArray titleArray = titleJson.getJSONArray(RESULTS);
 
-            String[] resultStrs = new String[20];
             for (int i = 0; i < titleArray.length(); i++) {
 
                 String title;
@@ -146,26 +137,21 @@ public class MainActivityFragment extends Fragment {
                 String rating;
 
                 JSONObject singeTitle = titleArray.getJSONObject(i);
-
                 title = singeTitle.getString(TITLE);
                 image = "https://image.tmdb.org/t/p/w185/" + singeTitle.getString(PICTURE);
                 release = singeTitle.getString(RELEASE);
                 description = singeTitle.getString(DESCRIPTION);
                 rating = singeTitle.getString(RATING);
 
-
-                resultStrs[i] = image;
+                mData.add(new Movie(title, image, description,rating,release));
             }
 
-            for (String s : resultStrs) {
-
-            }
-            return resultStrs;
+            return mData;
         }
 
 
         @Override
-        protected String[] doInBackground(String... params) {
+        protected ArrayList<Movie> doInBackground(String... params) {
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -252,16 +238,13 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(String[] result) {
-            super.onPostExecute(result);
-            mTitleAdapter.clear();
+        protected void onPostExecute(ArrayList<Movie> result ) {
             if (result != null) {
-                for (String singleTitle : result) {
-                    mTitleAdapter.add(singleTitle);
-
-                }
+               // mAdapter.clear();
+                mAdapter.setGridData(result);
+                } else {
+                Toast.makeText(getActivity(), "FAILED",Toast.LENGTH_SHORT).show();
             }
         }
     }
 }
-//this ends the udacity code
