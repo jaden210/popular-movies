@@ -163,7 +163,7 @@ public class MainActivityFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String titleJsonStr = null;
 
-            String apiKey = "5c50c47fea062190f9f743911ae71820";
+            String apiKey = "";
             //String sortBy = prefs.getString("popularity.desc", "popularity.desc");
 
             try {
