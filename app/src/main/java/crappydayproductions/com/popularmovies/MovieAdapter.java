@@ -21,6 +21,9 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
     private Context mContext;
     private int layoutResource;
     private ArrayList<Movie> mGridData = new ArrayList<Movie>();
+    private int position;
+    private View convertView;
+    private ViewGroup parent;
 
     public MovieAdapter(Context mContext, int layoutResource, ArrayList<Movie> mGridData) {
         super(mContext, layoutResource, mGridData);

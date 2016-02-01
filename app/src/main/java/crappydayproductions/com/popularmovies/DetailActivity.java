@@ -31,6 +31,7 @@ public class DetailActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new DetailFragment())
@@ -60,7 +61,7 @@ public class DetailActivity extends AppCompatActivity {
 
         private static final String MOVIE = "Movie";
         private static final String LOG_TAG = DetailFragment.class.getSimpleName();
-        private static final String SHARE_HASHTAG = " #SunshineApp";
+        private static final String SHARE_HASHTAG = " #PopularMoviesApp";
         private String mDetailStr;
 
         public DetailFragment() {
@@ -98,9 +99,12 @@ public class DetailActivity extends AppCompatActivity {
             int id = item.getItemId();
             if (id == R.id.action_share) {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                Intent shareMovie = getActivity().getIntent();
+                Movie shareMovieTitle = shareMovie.getParcelableExtra("movie");
+                String movieTitle = shareMovieTitle.getTitle();
                 shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
                 shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, mDetailStr + " " + SHARE_HASHTAG);
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "I watched " + movieTitle + " and I want you to watch it too! " + SHARE_HASHTAG);
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.action_share)));
 
                 //noinspection SimplifiableIfStatement
@@ -124,13 +128,11 @@ public class DetailActivity extends AppCompatActivity {
                 String movieDescription = movie.getDescription();
                 String movieRating = movie.getRating();
                 String movieRelease = movie.getRelease();
+                String moviePoster = movie.getPoster().toString();
 
-                ((TextView) rootView.findViewById(R.id.movie_title))
+                        ((TextView) rootView.findViewById(R.id.movie_title))
                         .setText(movieTitle);
-                Log.v(LOG_TAG,"Movie Data: " + movieTitle);
-
-                ImageView image = ((ImageView) rootView.findViewById(R.id.movie_image));
-                Picasso.with(getActivity()).load(movieImage).into(image);
+                Log.v(LOG_TAG, "Movie Data: " + movieTitle);
 
                 ((TextView) rootView.findViewById(R.id.movie_description))
                         .setText(movieDescription);
@@ -140,6 +142,10 @@ public class DetailActivity extends AppCompatActivity {
 
                 ((TextView) rootView.findViewById(R.id.movie_release))
                         .setText(movieRelease);
+
+                ImageView poster = ((ImageView) rootView.findViewById(R.id.poster_image));
+                Picasso.with(getActivity()).load(moviePoster).into(poster);
+
             } else {
                 Toast.makeText(getContext(), "FAIL",Toast.LENGTH_SHORT).show();
             }

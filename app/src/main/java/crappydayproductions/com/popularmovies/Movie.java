@@ -12,6 +12,7 @@ public class Movie implements Parcelable {
     private String description;
     private String rating;
     private String release;
+    private String poster;
 
     public String getTitle() {
         return title;
@@ -28,16 +29,27 @@ public class Movie implements Parcelable {
     public String getRelease(){
         return release;
     }
+    public String getPoster(){
+        return poster;
+    }
 
-    public Movie(String title, String image, String description,String rating, String release) {
+    public Movie(String title, String image, String description,String rating, String release, String poster) {
         this.title = title;
         this.image = image;
         this.description = description;
         this.rating = rating;
         this.release = release;
+        this.poster = poster;
     }
-    public Movie(Parcel parcel){
 
+    //Movie constructor used by parcelable
+    protected Movie(Parcel in) {
+        title = in.readString();
+        image = in.readString();
+        description = in.readString();
+        rating = in.readString();
+        release = in.readString();
+        poster = in.readString();
     }
 
     @Override
@@ -52,6 +64,7 @@ public class Movie implements Parcelable {
         out.writeString(description);
         out.writeString(rating);
         out.writeString(release);
+        out.writeString(poster);
     }
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
         public Movie createFromParcel(Parcel parcel) {

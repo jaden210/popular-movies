@@ -81,7 +81,6 @@ public class MainActivityFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(getActivity(),"CLICK",Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(getActivity(), DetailActivity.class);
                 Movie movie = mAdapter.getItem(position);
                 intent.putExtra("movie", movie);
@@ -124,6 +123,7 @@ public class MainActivityFragment extends Fragment {
             final String RELEASE = "release_date";
             final String DESCRIPTION = "overview";
             final String RATING = "vote_average";
+            final String PPATH = "backdrop_path";
 
             JSONObject titleJson = new JSONObject(titleJsonStr);
             JSONArray titleArray = titleJson.getJSONArray(RESULTS);
@@ -135,6 +135,7 @@ public class MainActivityFragment extends Fragment {
                 String release;
                 String description;
                 String rating;
+                String poster;
 
                 JSONObject singeTitle = titleArray.getJSONObject(i);
                 title = singeTitle.getString(TITLE);
@@ -142,8 +143,9 @@ public class MainActivityFragment extends Fragment {
                 release = singeTitle.getString(RELEASE);
                 description = singeTitle.getString(DESCRIPTION);
                 rating = singeTitle.getString(RATING);
+                poster = "https://image.tmdb.org/t/p/w185/" + singeTitle.getString(PPATH);
 
-                mData.add(new Movie(title, image, description,rating,release));
+                mData.add(new Movie(title, image, description, rating, release, poster));
             }
 
             return mData;
@@ -240,7 +242,7 @@ public class MainActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<Movie> result ) {
             if (result != null) {
-               // mAdapter.clear();
+                //mAdapter.clear();
                 mAdapter.setGridData(result);
                 } else {
                 Toast.makeText(getActivity(), "FAILED",Toast.LENGTH_SHORT).show();
