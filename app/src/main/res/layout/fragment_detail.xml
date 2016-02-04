@@ -90,7 +90,13 @@
                     android:paddingLeft="10dp" />
             </LinearLayout>
 
-            <TextView
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/trailerLink" />
+
+        <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
@@ -110,7 +116,12 @@
                 android:paddingRight="20dp" />
 
 
-        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"></LinearLayout>
+    </LinearLayout>
 
     </ScrollView>
 

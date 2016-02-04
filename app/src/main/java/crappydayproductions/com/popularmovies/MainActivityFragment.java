@@ -45,6 +45,7 @@ public class MainActivityFragment extends Fragment {
     private MovieAdapter mAdapter;
     private GridView gridView;
     private ArrayList<Movie> mData;
+    private Movie[] movies;
 
     public MainActivityFragment() {
     }
@@ -124,6 +125,7 @@ public class MainActivityFragment extends Fragment {
             final String DESCRIPTION = "overview";
             final String RATING = "vote_average";
             final String PPATH = "backdrop_path";
+            final String ID = "id";
 
             JSONObject titleJson = new JSONObject(titleJsonStr);
             JSONArray titleArray = titleJson.getJSONArray(RESULTS);
@@ -136,6 +138,7 @@ public class MainActivityFragment extends Fragment {
                 String description;
                 String rating;
                 String poster;
+                String id;
 
                 JSONObject singeTitle = titleArray.getJSONObject(i);
                 title = singeTitle.getString(TITLE);
@@ -144,8 +147,9 @@ public class MainActivityFragment extends Fragment {
                 description = singeTitle.getString(DESCRIPTION);
                 rating = singeTitle.getString(RATING);
                 poster = "https://image.tmdb.org/t/p/w185/" + singeTitle.getString(PPATH);
+                id = singeTitle.getString(ID);
 
-                mData.add(new Movie(title, image, description, rating, release, poster));
+                mData.add(new Movie(title, image, description, rating, release, poster, id));
             }
 
             return mData;
@@ -163,7 +167,7 @@ public class MainActivityFragment extends Fragment {
             // Will contain the raw JSON response as a string.
             String titleJsonStr = null;
 
-            String apiKey = "";
+            String apiKey = "5c50c47fea062190f9f743911ae71820";
             //String sortBy = prefs.getString("popularity.desc", "popularity.desc");
 
             try {
