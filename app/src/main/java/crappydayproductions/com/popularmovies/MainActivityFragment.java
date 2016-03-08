@@ -75,7 +75,7 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         gridView = (GridView) rootView.findViewById(R.id.gridview_title);
-        mData = new ArrayList<>();
+        mData = new ArrayList<Movie>();
         mAdapter = new MovieAdapter(getActivity(),R.layout.grid_item_title, mData);
         gridView.setAdapter(mAdapter);
 
@@ -108,13 +108,13 @@ public class MainActivityFragment extends Fragment {
     }
 
 
-    public class FetchTitleTask extends AsyncTask<String, Void, ArrayList<Movie>> {
+    public class FetchTitleTask extends AsyncTask<String, Void, Movie[]> {
 
         private final String LOG_TAG = FetchTitleTask.class.getSimpleName();
 
 
         //Parsing is done here
-        private ArrayList<Movie> getTitleDataFromJson(String titleJsonStr)
+        private Movie[] getTitleDataFromJson(String titleJsonStr)
                 throws JSONException {
 
             //Names of JSON to extract
@@ -138,7 +138,7 @@ public class MainActivityFragment extends Fragment {
                 String description;
                 String rating;
                 String poster;
-                String id;
+                long id;
 
                 JSONObject singeTitle = titleArray.getJSONObject(i);
                 title = singeTitle.getString(TITLE);
@@ -147,17 +147,19 @@ public class MainActivityFragment extends Fragment {
                 description = singeTitle.getString(DESCRIPTION);
                 rating = singeTitle.getString(RATING);
                 poster = "https://image.tmdb.org/t/p/w185/" + singeTitle.getString(PPATH);
-                id = singeTitle.getString(ID);
+                id = singeTitle.getLong(ID);
 
-                mData.add(new Movie(title, image, description, rating, release, poster, id));
+                //mData.add(new Movie(title, image, description, rating, release, poster, id));
+                Movie movie = new Movie(title, image, description, rating, release, poster, id);
+                //movies[i] = movie;
             }
 
-            return mData;
+            return movies;
         }
 
 
         @Override
-        protected ArrayList<Movie> doInBackground(String... params) {
+        protected Movie[] doInBackground(String... params) {
 
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
@@ -234,7 +236,6 @@ public class MainActivityFragment extends Fragment {
                 }
             }
             try {
-
                 return getTitleDataFromJson(titleJsonStr);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
@@ -244,10 +245,10 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Movie> result ) {
+        protected void onPostExecute(Movie[] result ) {
             if (result != null) {
                 //mAdapter.clear();
-                mAdapter.setGridData(result);
+                mAdapter.addAll(result);
                 } else {
                 Toast.makeText(getActivity(), "FAILED",Toast.LENGTH_SHORT).show();
             }

@@ -1,5 +1,6 @@
 package crappydayproductions.com.popularmovies;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -9,7 +10,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.BinderThread;
-import android.support.v4.app.Fragment;
+
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -21,11 +22,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerFragment;
+import com.google.android.youtube.player.YouTubePlayerSupportFragment;
+import com.google.android.youtube.player.YouTubePlayerView;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -44,6 +53,7 @@ import java.util.List;
 public class DetailActivity extends AppCompatActivity {
 
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_detail);
@@ -55,17 +65,14 @@ public class DetailActivity extends AppCompatActivity {
         bundle.putParcelable("movie", movieData);
         detailFragment.setArguments(bundle);
 
-        //This can probably be removed.
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        //fragmentTransaction.add(R.id.fragment,detailFragment).commit();
+
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
+            getFragmentManager().beginTransaction()
                     .add(R.id.container, new DetailFragment())
                     .commit();
         }
@@ -96,6 +103,7 @@ public class DetailActivity extends AppCompatActivity {
         public DetailFragment() {
             setHasOptionsMenu(true);
         }
+
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -137,9 +145,11 @@ public class DetailActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
-            Intent intent = getActivity().getIntent();
-            if (intent != null) {
-                movieData = intent.getParcelableExtra("movie");
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+            //Intent intent = getActivity().getIntent();
+            //if (intent != null) {
+                movieData = bundle.getParcelable("movie");
                 String movieTitle = movieData.getTitle();
                 //String movieImage = movieData.getImage();
                 String movieDescription = movieData.getDescription();
@@ -163,7 +173,7 @@ public class DetailActivity extends AppCompatActivity {
                 Picasso.with(getActivity()).load(moviePoster).into(poster);
 
             } else {
-                Toast.makeText(getContext(), "FAIL", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getContext(), "FAIL", Toast.LENGTH_SHORT).show();
             }
             return rootView;
         }
@@ -176,50 +186,66 @@ public class DetailActivity extends AppCompatActivity {
             fetchDataTask.execute(API_KEY);
         }
 
+
+
         public class FetchDataTask extends AsyncTask<String, Void, Movie> {
 
             private final String LOG_TAG = FetchDataTask.class.getSimpleName();
 
-            //change to show in the top banner
-            private void playYouTube(String key) {
 
-                Uri builtUri = Uri.parse(key);
+            private void playTrailerIntent(String key) {
 
-                Intent intent = new Intent(Intent.ACTION_VIEW, builtUri);
-                startActivity(intent);
+                final String VALUE = "v";
+                final String BASE_YOUTUBE_URI = "http://www.youtube.com/watch?";
+                Uri builtUri = Uri.parse(BASE_YOUTUBE_URI).buildUpon()
+                        .appendQueryParameter(VALUE, key)
+                        .build();
+
+                // Build the intent
+                Intent playIntent = new Intent(Intent.ACTION_VIEW, builtUri);
+
+                // Verify it resolves
+                PackageManager packageManager = getActivity().getPackageManager();
+                // TODO: Why the example in documentation set flag = 0?
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
+                boolean isIntentSafe = activities.size() > 0;
+
+                // Start an activity if it is safe
+                if (isIntentSafe) {
+                    startActivity(playIntent);
+                }
             }
 
 
-            private void getTrailerFromJson(String detailJsonStr)
+
+            private void getTrailerFromJson(String trailerJsonStr)
                     throws JSONException {
 
-                final String TNAME = "name";
-                final String TSOURCE = "source";
-                final String TTYPE = "type";
+                final String MOVIE_ID = "id";
+                final String TRAILER_NAME = "name";
+                final String KEY = "key";
+                final String RESULTS = "results";
+                // Convert JSON string to JSON object
+                JSONObject jsonObject = new JSONObject(trailerJsonStr);
+                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
 
-                JSONObject detailJson = new JSONObject(detailJsonStr);
-                JSONObject trailerJson = detailJson.getJSONObject("trailers");
-                JSONArray trailerArray = trailerJson.getJSONArray("youtube");
+                long movieId = jsonObject.getLong(MOVIE_ID);
 
+                int count = resultArray.length();
+                for (int i = 0; i < count; i++) {
+                    // Get JSON object for each trailer
+                    JSONObject trailerJson = resultArray.getJSONObject(i);
 
-                for (int i = 0; i < trailerArray.length(); i++) {
-                    String tName;
-                    String tSource;
-                    String tType;
+                    String name = trailerJson.getString(TRAILER_NAME);
+                    String key = trailerJson.getString(KEY);
 
-                    JSONObject trailerData = trailerArray.getJSONObject(i);
-                    tName = trailerData.getString(TNAME);
-                    tSource = trailerData.getString(TSOURCE);
-                    tType = trailerData.getString(TTYPE);
-
-                    Movie.Trailer trailer = new Movie.Trailer(tName, tSource, tType);
-
-                    //There are Errors here.
+                    Movie.Trailer trailer = new Movie.Trailer(movieId, name, key);
+                    // Add each trailer to the trailers List.
                     movieData.trailers.add(trailer);
                 }
             }
 
-            private void getReviewFromJson(String detailJsonStr)
+            private void getReviewFromJson(String reviewJsonStr)
                     throws JSONException {
 
                 final String RESULTS = "results";
@@ -228,24 +254,23 @@ public class DetailActivity extends AppCompatActivity {
                 final String RCONTENT = "content";
                 final String RURL = "url";
 
-                JSONObject detailJson = new JSONObject(detailJsonStr);
-                JSONObject reviewJson = detailJson.getJSONObject("reviews");
-                JSONArray reviewArray = reviewJson.getJSONArray(RESULTS);
+                // Convert JSON String to JSON
+                JSONObject jsonObject = new JSONObject(reviewJsonStr);
 
-                for (int i = 0; i < reviewArray.length(); i++) {
-                    String rId;
-                    String rAuthor;
-                    String rContent;
-                    String rUrl;
+                long movieID = jsonObject.getLong(RID);
+                JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
+                int count = resultArray.length();
 
-                    JSONObject reviewData = reviewArray.getJSONObject(i);
-                    rId = reviewData.getString(RID);
-                    rAuthor = reviewData.getString(RAUTHOR);
-                    rContent = reviewData.getString(RCONTENT);
-                    rUrl = reviewData.getString(RURL);
-                    Movie.Review review = new Movie.Review(rId, rAuthor, rContent, rUrl);
+                for (int i = 0; i < count; i ++) {
+                    // Get JSON object for each review
+                    JSONObject reviewJson = resultArray.getJSONObject(i);
 
-                    //There are Errors here.
+                    String author = reviewJson.getString(RAUTHOR);
+                    String content = reviewJson.getString(RCONTENT);
+                    String url = reviewJson.getString(RURL);
+
+                    Movie.Review review = new Movie.Review(movieID, author, content,url);
+
                     movieData.reviews.add(review);
                 }
             }
@@ -260,31 +285,34 @@ public class DetailActivity extends AppCompatActivity {
                 BufferedReader reader = null;
 
                 // Will contain the raw JSON response as a string.
-                String detailJsonStr = null;
-                String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie/" + params[0] + "?";
+                String trailerJsonStr = null;
+                String reviewJsonStr = null;
+                String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie";
                 String API_PARAM = "api_key";
                 String apiKey = "5c50c47fea062190f9f743911ae71820";
-                String append = "trailers,reviews";
-                String APPEND = "append_to_response";
+                String VIDEOS = "videos";
+                String REVIEWS = "reviews";
+                final long MOVIE_ID = movieData.id;
 
 
                 try {
                     //build uri
-                    Uri builtUri = Uri.parse(MOVIE_BASE_URL).buildUpon()
+                    final String TRAILER_URL = MOVIE_BASE_URL + "/" + MOVIE_ID + "/" + VIDEOS;
+                    Uri builtTrailerUri = Uri.parse(TRAILER_URL).buildUpon()
                             .appendQueryParameter(API_PARAM, apiKey)
-                            .appendQueryParameter(APPEND, append)
                             .build();
 
-                    URL url = new URL(builtUri.toString());
-                    Log.v(LOG_TAG, "URI = " + builtUri.toString());
+                    URL trailerUrl = new URL(builtTrailerUri.toString());
+                    Log.v(LOG_TAG, "URI = " + builtTrailerUri.toString());
                     // Create the request to OpenmoviesAPI, and open the connection
-                    urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection = (HttpURLConnection) trailerUrl.openConnection();
                     urlConnection.setRequestMethod("GET");
                     urlConnection.connect();
 
                     // Read the input stream into a String
                     InputStream inputStream = urlConnection.getInputStream();
                     StringBuffer buffer = new StringBuffer();
+
                     if (inputStream == null) {
                         return null;
                     }
@@ -299,7 +327,7 @@ public class DetailActivity extends AppCompatActivity {
                         return null;
                     }
 
-                    detailJsonStr = buffer.toString();
+                    trailerJsonStr = buffer.toString();
                 } catch (IOException e) {
                     Log.e("PlaceholderFragment", "Error ", e);
                     // If the code didn't successfully get the movie data, there's no point in attemping
@@ -318,10 +346,65 @@ public class DetailActivity extends AppCompatActivity {
                         }
                     }
                 }
-                //ends http request
+
+                //Reviews
                 try {
-                    getTrailerFromJson(detailJsonStr);
-                    getReviewFromJson(detailJsonStr);
+                    // Construct URI for reviews query.
+                    final String REVIEW_URL = MOVIE_BASE_URL + "/" + MOVIE_ID + "/" + REVIEWS;
+                    Uri builtReviewUri = Uri.parse(REVIEW_URL).buildUpon()
+                            .appendQueryParameter(API_PARAM, apiKey)
+                            .build();
+
+                    // Construct URL
+                    URL reviewURL = new URL(builtReviewUri.toString());
+
+                    // Open connection
+                    urlConnection = (HttpURLConnection)reviewURL.openConnection();
+                    urlConnection.setRequestMethod("GET");
+                    urlConnection.connect();
+
+                    // Step 2: Read response from input stream (String of JSON)
+                    InputStream inputStream = urlConnection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+
+                    if (inputStream == null) {return  null;}
+
+                    reader = new BufferedReader(new InputStreamReader(inputStream));
+                    String line;
+
+                    // Read input stream into string;
+                    while((line = reader.readLine()) != null) {
+                        buffer.append(line + "\n");
+                    }
+
+                    if (buffer == null) {return null;}
+
+                    // Get JSON String out of buffer
+                    reviewJsonStr = buffer.toString();
+
+                     } catch (IOException e) {
+                    Log.e("PlaceholderFragment", "Error ", e);
+                    e.printStackTrace();
+                    return  null;
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (IOException e) {
+                            Log.e("PlaceholderFragment", "Error closing stream", e);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                //ends http request
+
+                try {
+                    getTrailerFromJson(trailerJsonStr);
+                    getReviewFromJson(reviewJsonStr);
                     return movieData;
 
                 } catch (JSONException e) {
@@ -344,7 +427,7 @@ public class DetailActivity extends AppCompatActivity {
                         trailerItem.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
-                                playYouTube(video.key);
+                                playTrailerIntent(video.key);
                             }
                         });
                         //Toast.makeText(getContext(), "FAILED", Toast.LENGTH_SHORT).show();

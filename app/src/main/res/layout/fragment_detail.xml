@@ -14,6 +14,11 @@
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"/>
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="208dp"
+        android:id="@+id/youtube_player"/>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="208dp"

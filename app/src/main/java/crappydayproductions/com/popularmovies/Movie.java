@@ -3,6 +3,7 @@ package crappydayproductions.com.popularmovies;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public class Movie implements Parcelable {
     private String rating;
     private String release;
     private String poster;
-    private String id;
+    long id;
     boolean favorites;
     List<Trailer> trailers;
     List<Review> reviews;
@@ -44,11 +45,11 @@ public class Movie implements Parcelable {
         return poster;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public Movie(String title, String image, String description, String rating, String release, String poster, String id) {
+    public Movie(String title, String image, String description, String rating, String release, String poster, long id) {
         this.title = title;
         this.image = image;
         this.description = description;
@@ -56,6 +57,9 @@ public class Movie implements Parcelable {
         this.release = release;
         this.poster = poster;
         this.id = id;
+        this.favorites = false;
+        trailers = new ArrayList<Trailer>();
+        reviews = new ArrayList<Review>();
     }
 
     //Movie constructor used by parcelable
@@ -66,7 +70,7 @@ public class Movie implements Parcelable {
         rating = in.readString();
         release = in.readString();
         poster = in.readString();
-        id = in.readString();
+        id = in.readLong();
         favorites = in.readByte() != 0;
         trailers = in.readArrayList(Trailer.class.getClassLoader());
         reviews = in.readArrayList(Review.class.getClassLoader());
@@ -85,13 +89,13 @@ public class Movie implements Parcelable {
         out.writeString(rating);
         out.writeString(release);
         out.writeString(poster);
-        out.writeString(id);
+        out.writeLong(id);
         out.writeByte((byte) (favorites ? 1 : 0));
         out.writeTypedList(trailers);
         out.writeTypedList(reviews);
     }
 
-    public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {
+    public static final Parcelable.Creator<Movie> CREATOR = new Creator<Movie>() {
         public Movie createFromParcel(Parcel parcel) {
             return new Movie(parcel);
         }
@@ -103,18 +107,18 @@ public class Movie implements Parcelable {
 
     //Trailer
     public static class Trailer implements Parcelable {
-        String movieId;
+        long movieId;
         String tSource;
         String key;
 
-        public Trailer(String movieId, String tSource, String key) {
+        public Trailer(long movieId, String tSource, String key) {
             this.movieId = movieId;
             this.tSource = tSource;
             this.key = key;
         }
 
         private Trailer(Parcel in) {
-            movieId = in.readString();
+            movieId = in.readLong();
             tSource = in.readString();
             key = in.readString();
         }
@@ -126,7 +130,7 @@ public class Movie implements Parcelable {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeString(movieId);
+            dest.writeLong(movieId);
             dest.writeString(tSource);
             dest.writeString(key);
         }
@@ -146,12 +150,12 @@ public class Movie implements Parcelable {
 
     //Review
     public static class Review implements Parcelable {
-        String rId;
+        long rId;
         String rAuthor;
         String rContent;
         String rUrl;
 
-        public Review(String rId, String rAuthor, String rContent, String rUrl) {
+        public Review(long rId, String rAuthor, String rContent, String rUrl) {
             this.rId = rId;
             this.rAuthor = rAuthor;
             this.rContent = rContent;
@@ -159,7 +163,7 @@ public class Movie implements Parcelable {
         }
 
         private Review(Parcel in) {
-            rId = in.readString();
+            rId = in.readLong();
             rAuthor = in.readString();
             rContent = in.readString();
             rUrl = in.readString();
@@ -172,7 +176,7 @@ public class Movie implements Parcelable {
 
         @Override
         public void writeToParcel(Parcel dest, int flag) {
-            dest.writeString(rId);
+            dest.writeLong(rId);
             dest.writeString(rAuthor);
             dest.writeString(rContent);
             dest.writeString(rUrl);
