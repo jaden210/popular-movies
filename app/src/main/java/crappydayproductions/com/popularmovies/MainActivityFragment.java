@@ -44,7 +44,7 @@ public class MainActivityFragment extends Fragment {
 
     private MovieAdapter mAdapter;
     private GridView gridView;
-    private ArrayList<Movie> mData;
+    private ArrayList<Movie> mData = new ArrayList<Movie>();
     private Movie[] movies;
 
     public MainActivityFragment() {
@@ -74,8 +74,9 @@ public class MainActivityFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        gridView = (GridView) rootView.findViewById(R.id.gridview_title);
-        mData = new ArrayList<Movie>();
+
+        GridView gridView = (GridView) rootView.findViewById(R.id.gridview_title);
+        //mData = new ArrayList<Movie>();
         mAdapter = new MovieAdapter(getActivity(),R.layout.grid_item_title, mData);
         gridView.setAdapter(mAdapter);
 
@@ -92,13 +93,14 @@ public class MainActivityFragment extends Fragment {
         return rootView;
     }
 
-
-    private void updateTitles() {
+    public void updateTitles() {
         FetchTitleTask titleTask = new FetchTitleTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_by = prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default));
         titleTask.execute(sort_by);
+
     }
+
 
 
     @Override
@@ -130,6 +132,8 @@ public class MainActivityFragment extends Fragment {
             JSONObject titleJson = new JSONObject(titleJsonStr);
             JSONArray titleArray = titleJson.getJSONArray(RESULTS);
 
+            Movie[] movies = new Movie[titleArray.length()];
+
             for (int i = 0; i < titleArray.length(); i++) {
 
                 String title;
@@ -138,7 +142,7 @@ public class MainActivityFragment extends Fragment {
                 String description;
                 String rating;
                 String poster;
-                long id;
+                String id;
 
                 JSONObject singeTitle = titleArray.getJSONObject(i);
                 title = singeTitle.getString(TITLE);
@@ -147,11 +151,11 @@ public class MainActivityFragment extends Fragment {
                 description = singeTitle.getString(DESCRIPTION);
                 rating = singeTitle.getString(RATING);
                 poster = "https://image.tmdb.org/t/p/w185/" + singeTitle.getString(PPATH);
-                id = singeTitle.getLong(ID);
+                id = singeTitle.getString(ID);
 
                 //mData.add(new Movie(title, image, description, rating, release, poster, id));
                 Movie movie = new Movie(title, image, description, rating, release, poster, id);
-                //movies[i] = movie;
+                movies[i] = movie;
             }
 
             return movies;
@@ -187,6 +191,7 @@ public class MainActivityFragment extends Fragment {
                 URL url = new URL(builtUri.toString());
 
                 Log.v(LOG_TAG, "URI = " + builtUri.toString());
+
 
                 // Create the request to OpenmoviesAPI, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();

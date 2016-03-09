@@ -50,6 +50,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.Bind;
+
 public class DetailActivity extends AppCompatActivity {
 
 
@@ -60,11 +62,14 @@ public class DetailActivity extends AppCompatActivity {
 
         DetailFragment detailFragment = new DetailFragment();
         Intent intent = getIntent();
-        Movie movieData = intent.getParcelableExtra("movie");
+        Movie movieData1 = intent.getParcelableExtra("movie");
         Bundle bundle = new Bundle();
-        bundle.putParcelable("movie", movieData);
+        bundle.putParcelable("movie", movieData1);
         detailFragment.setArguments(bundle);
 
+        FragmentManager fragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.add(R.id.container, detailFragment).commit();
 
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
@@ -94,8 +99,10 @@ public class DetailActivity extends AppCompatActivity {
 
     public static class DetailFragment extends Fragment {
 
-        private static final String LOG_TAG = DetailFragment.class.getSimpleName();
-        private Movie movieData;
+        private final String LOG_TAG = DetailFragment.class.getSimpleName();
+        private Movie movieData1;
+        @Bind(R.id.trailer_container) LinearLayout container;
+        @Bind(R.id.review_content) LinearLayout rContainer;
 
         //mine
         private static final String SHARE_HASHTAG = " #PopularMoviesApp";
@@ -149,14 +156,14 @@ public class DetailActivity extends AppCompatActivity {
             if (bundle != null) {
             //Intent intent = getActivity().getIntent();
             //if (intent != null) {
-                movieData = bundle.getParcelable("movie");
-                String movieTitle = movieData.getTitle();
+                movieData1 = bundle.getParcelable("movie");
+                final String movieTitle = movieData1.getTitle();
                 //String movieImage = movieData.getImage();
-                String movieDescription = movieData.getDescription();
-                String movieRating = movieData.getRating();
-                String movieRelease = movieData.getRelease();
-                String moviePoster = movieData.getPoster();
-                //String movieId = movieData.getId();
+                final String movieDescription = movieData1.getDescription();
+                final String movieRating = movieData1.getRating();
+                final String movieRelease = movieData1.getRelease();
+                final String moviePoster = movieData1.getPoster();
+                final String id = movieData1.getId();
 
                 Log.v(LOG_TAG, "Movie Data: " + movieTitle);
 
@@ -229,7 +236,7 @@ public class DetailActivity extends AppCompatActivity {
                 JSONObject jsonObject = new JSONObject(trailerJsonStr);
                 JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
 
-                long movieId = jsonObject.getLong(MOVIE_ID);
+                String movieId = jsonObject.getString(MOVIE_ID);
 
                 int count = resultArray.length();
                 for (int i = 0; i < count; i++) {
@@ -241,7 +248,7 @@ public class DetailActivity extends AppCompatActivity {
 
                     Movie.Trailer trailer = new Movie.Trailer(movieId, name, key);
                     // Add each trailer to the trailers List.
-                    movieData.trailers.add(trailer);
+                    movieData1.trailers.add(trailer);
                 }
             }
 
@@ -257,7 +264,7 @@ public class DetailActivity extends AppCompatActivity {
                 // Convert JSON String to JSON
                 JSONObject jsonObject = new JSONObject(reviewJsonStr);
 
-                long movieID = jsonObject.getLong(RID);
+                String movieID = jsonObject.getString(RID);
                 JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
                 int count = resultArray.length();
 
@@ -271,14 +278,14 @@ public class DetailActivity extends AppCompatActivity {
 
                     Movie.Review review = new Movie.Review(movieID, author, content,url);
 
-                    movieData.reviews.add(review);
+                    movieData1.reviews.add(review);
                 }
             }
 
             @Override
             protected Movie doInBackground(String... params) {
 
-                if (params.length == 0) return null;
+                if (params.length == 0) {return null;}
 
                 // get connection
                 HttpURLConnection urlConnection = null;
@@ -287,12 +294,12 @@ public class DetailActivity extends AppCompatActivity {
                 // Will contain the raw JSON response as a string.
                 String trailerJsonStr = null;
                 String reviewJsonStr = null;
-                String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie";
-                String API_PARAM = "api_key";
-                String apiKey = "5c50c47fea062190f9f743911ae71820";
-                String VIDEOS = "videos";
-                String REVIEWS = "reviews";
-                final long MOVIE_ID = movieData.id;
+                final String MOVIE_BASE_URL = "https://api.themoviedb.org/3/movie";
+                final String API_PARAM = "api_key";
+                final String apiKey = "5c50c47fea062190f9f743911ae71820";
+                final String VIDEOS = "videos";
+                final String REVIEWS = "reviews";
+                final String MOVIE_ID = movieData1.id;
 
 
                 try {
@@ -304,6 +311,7 @@ public class DetailActivity extends AppCompatActivity {
 
                     URL trailerUrl = new URL(builtTrailerUri.toString());
                     Log.v(LOG_TAG, "URI = " + builtTrailerUri.toString());
+
                     // Create the request to OpenmoviesAPI, and open the connection
                     urlConnection = (HttpURLConnection) trailerUrl.openConnection();
                     urlConnection.setRequestMethod("GET");
@@ -405,7 +413,7 @@ public class DetailActivity extends AppCompatActivity {
                 try {
                     getTrailerFromJson(trailerJsonStr);
                     getReviewFromJson(reviewJsonStr);
-                    return movieData;
+                    return movieData1;
 
                 } catch (JSONException e) {
                     Log.e(LOG_TAG, e.getMessage(), e);
@@ -413,16 +421,19 @@ public class DetailActivity extends AppCompatActivity {
                 }
 
                 return null;
+
             }
 
             @Override
             protected void onPostExecute(Movie result) {
                 //R.id.detail_container.removeAllViews();
+                //container.removeAllViews();
+                //rContainer.removeAllViews();
 
                 if (result.trailers.size() != 0) {
-                    for (final Movie.Trailer video : movieData.trailers) {
-                        View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_detail, null);
-                        TextView trailerUrl = (TextView) trailerItem.findViewById(R.id.trailerLink);
+                    for (final Movie.Trailer video : movieData1.trailers) {
+                        View trailerItem = LayoutInflater.from(getActivity()).inflate(R.layout.trailer_single, null);
+                        TextView trailerUrl = (TextView) trailerItem.findViewById(R.id.trailer_name);
                         trailerUrl.setText(video.tSource);
                         trailerItem.setOnClickListener(new View.OnClickListener() {
                             @Override
@@ -431,18 +442,20 @@ public class DetailActivity extends AppCompatActivity {
                             }
                         });
                         //Toast.makeText(getContext(), "FAILED", Toast.LENGTH_SHORT).show();
-                       // R.id.detail_container.addView(trailerItem);
+
+                        container.addView(trailerItem);
                     }
                 }
 
                 if (result.reviews.size() != 0) {
-                    for (final Movie.Review review : movieData.reviews) {
-                        View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.fragment_detail, null);
+                    for (final Movie.Review review : movieData1.reviews) {
+                        View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_single, null);
                         //TextView reviewAuthor = (TextView) reviewItem.findViewById(R.id.review_author);
-                        //TextView reviewContent = (TextView) reviewItem.findViewById(R.id.review_content);
+                        TextView reviewContent = (TextView) reviewItem.findViewById(R.id.review_content);
                         //reviewAuthor.setText(review.rAuthor);
-                        //reviewContent.setText(review.rContent);
+                        reviewContent.setText(review.rContent);
                         //detailContainer.addView(reviewItem);
+                        rContainer.addView(reviewItem);
                     }
                 }
             }
