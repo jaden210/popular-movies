@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.BinderThread;
 
+import android.support.annotation.Nullable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
+import butterknife.ButterKnife;
 
 public class DetailActivity extends AppCompatActivity {
 
@@ -60,7 +62,9 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_detail);
 
-        DetailFragment detailFragment = new DetailFragment();
+        if (savedInstanceState == null) {
+
+            DetailFragment detailFragment = new DetailFragment();
         Intent intent = getIntent();
         Movie movieData1 = intent.getParcelableExtra("movie");
         Bundle bundle = new Bundle();
@@ -76,10 +80,10 @@ public class DetailActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
-        if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, new DetailFragment())
-                    .commit();
+
+            //getFragmentManager().beginTransaction()
+             //       .add(R.id.container, new DetailFragment())
+             //       .commit();
         }
     }
 
@@ -101,8 +105,10 @@ public class DetailActivity extends AppCompatActivity {
 
         private final String LOG_TAG = DetailFragment.class.getSimpleName();
         private Movie movieData1;
-        @Bind(R.id.trailer_container) LinearLayout container;
-        @Bind(R.id.review_content) LinearLayout rContainer;
+        private Menu menu;
+
+        @Nullable @Bind(R.id.trailer_container) LinearLayout container;
+        @Nullable @Bind(R.id.review_container) LinearLayout rContainer;
 
         //mine
         private static final String SHARE_HASHTAG = " #PopularMoviesApp";
@@ -116,6 +122,7 @@ public class DetailActivity extends AppCompatActivity {
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             // Inflate the menu; this adds items to the action bar if it is present.
             inflater.inflate(R.menu.detailfragment, menu);
+            this.menu = menu;
             // Retrieve the share menu item
             MenuItem menuItem = menu.findItem(R.id.action_share);
             // Get the provider and hold onto it to set/change the share intent.
@@ -144,6 +151,12 @@ public class DetailActivity extends AppCompatActivity {
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.action_share)));
                 return true;
             }
+            if (id == R.id.action_favorite) {
+                //if (movieData1.id == true) {}
+                
+                menu.getItem(id).setIcon(getResources().getDrawable(R.drawable.likefilled));
+
+            }
             return super.onOptionsItemSelected(item);
         }
 
@@ -153,10 +166,12 @@ public class DetailActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
 
             Bundle bundle = getArguments();
+            ButterKnife.bind(this, rootView);
             if (bundle != null) {
-            //Intent intent = getActivity().getIntent();
-            //if (intent != null) {
                 movieData1 = bundle.getParcelable("movie");
+
+                setHasOptionsMenu(true);
+
                 final String movieTitle = movieData1.getTitle();
                 //String movieImage = movieData.getImage();
                 final String movieDescription = movieData1.getDescription();
@@ -166,6 +181,8 @@ public class DetailActivity extends AppCompatActivity {
                 final String id = movieData1.getId();
 
                 Log.v(LOG_TAG, "Movie Data: " + movieTitle);
+                ((TextView) rootView.findViewById(R.id.movie_title))
+                        .setText(movieTitle);
 
                 ((TextView) rootView.findViewById(R.id.movie_description))
                         .setText(movieDescription);
@@ -175,6 +192,13 @@ public class DetailActivity extends AppCompatActivity {
 
                 ((TextView) rootView.findViewById(R.id.movie_release))
                         .setText(movieRelease);
+
+                ((TextView) rootView.findViewById(R.id.overview))
+                        .setText("Overview");
+
+                ((TextView) rootView.findViewById(R.id.reviews_title))
+                        .setText("User Reviews");
+
 
                 ImageView poster = ((ImageView) rootView.findViewById(R.id.poster_image));
                 Picasso.with(getActivity()).load(moviePoster).into(poster);
@@ -427,8 +451,8 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Movie result) {
                 //R.id.detail_container.removeAllViews();
-                //container.removeAllViews();
-                //rContainer.removeAllViews();
+                container.removeAllViews();
+                rContainer.removeAllViews();
 
                 if (result.trailers.size() != 0) {
                     for (final Movie.Trailer video : movieData1.trailers) {
@@ -443,6 +467,7 @@ public class DetailActivity extends AppCompatActivity {
                         });
                         //Toast.makeText(getContext(), "FAILED", Toast.LENGTH_SHORT).show();
 
+                        container.removeAllViews();
                         container.addView(trailerItem);
                     }
                 }
@@ -450,11 +475,11 @@ public class DetailActivity extends AppCompatActivity {
                 if (result.reviews.size() != 0) {
                     for (final Movie.Review review : movieData1.reviews) {
                         View reviewItem = LayoutInflater.from(getActivity()).inflate(R.layout.review_single, null);
-                        //TextView reviewAuthor = (TextView) reviewItem.findViewById(R.id.review_author);
-                        TextView reviewContent = (TextView) reviewItem.findViewById(R.id.review_content);
-                        //reviewAuthor.setText(review.rAuthor);
+                        TextView reviewAuthor = (TextView) reviewItem.findViewById(R.id.review_author);
+                        TextView reviewContent = (TextView) reviewItem.findViewById(R.id.review_name);
+                        reviewAuthor.setText(review.rAuthor);
                         reviewContent.setText(review.rContent);
-                        //detailContainer.addView(reviewItem);
+                        //rContainer.addView(reviewItem);
                         rContainer.addView(reviewItem);
                     }
                 }

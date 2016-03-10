@@ -10,4 +10,10 @@
         android:title="@string/action_share"
         app:showAsAction="always"
         android:icon="@drawable/share"/>
+
+    <item android:id="@+id/action_favorite"
+        android:title="@string/action_favorite"
+        app:showAsAction="always"
+        android:icon="@drawable/like"/>
+
 </menu>

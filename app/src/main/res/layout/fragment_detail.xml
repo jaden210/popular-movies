@@ -1,9 +1,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
     android:layout_width="match_parent" android:layout_height="match_parent"
     tools:ignore="MergeRootFrame"
-    android:layout_margin="0dp"
+    android:id="@+id/container"
     android:padding="0dp">
 
     <android.support.v7.widget.Toolbar
@@ -26,22 +25,25 @@
         android:layout_gravity="top"
         android:layout_marginTop="0dp"
         android:scaleType="fitXY"/>
-
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="208dp">
 
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:id="@+id/scrollView"
         android:layout_marginTop="0dp">
 
     <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="208dp">
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 android:id="@+id/movie_title"
                 android:layout_marginTop="0dp"
@@ -51,20 +53,19 @@
 
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="25dp"
                 android:layout_marginTop="3dp">
 
                 <ImageView
                     android:layout_width="25dp"
                     android:layout_height="25dp"
-                    android:id="@+id/imageView"
                     android:src="@drawable/abc_btn_rating_star_on_mtrl_alpha"
                     android:scaleType="fitXY"
                     android:layout_marginLeft="20dp" />
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="25dp"
                     android:id="@+id/movie_rating"
                     android:layout_marginTop="00dp"
@@ -74,7 +75,7 @@
 
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="25dp"
                 android:layout_marginTop="3dp">
 
@@ -87,7 +88,7 @@
                     android:layout_marginLeft="20dp"/>
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="25dp"
                     android:id="@+id/movie_release"
                     android:layout_marginTop="0dp"
@@ -97,23 +98,23 @@
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/trailer_container"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/trailer_container"></LinearLayout>
 
 
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="Overview:"
+                android:id="@+id/overview"
                 android:layout_marginBottom="0dp"
                 android:paddingLeft="20dp"
                 android:layout_marginTop="25dp" />
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="245dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:id="@+id/movie_description"
                 android:layout_marginTop="0dp"
                 android:layout_gravity="top"
@@ -121,14 +122,25 @@
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/reviews_title"
+            android:layout_marginBottom="0dp"
+            android:paddingLeft="20dp"
+            android:layout_marginTop="25dp" />
+
 
         <LinearLayout
-            android:id="@+id/detail_container"
-            android:layout_width="match_parent"
+            android:id="@+id/review_container"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"></LinearLayout>
+
     </LinearLayout>
 
     </ScrollView>
+    </LinearLayout>
 
 </FrameLayout>

@@ -3,10 +3,12 @@
     <string name="action_settings">Settings</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_share">Share</string>
+    <string name="action_favorite">Favorite</string>
 
     <string name="title_activity_detail_fragment">DetailActivity</string>
     <string name="pref_title_sort_by">Sort By</string>
     <string name="pref_sort_by_default">popularity.desc</string>
     <string name="pref_summary_sort_by">Choose the way you want your results to be sorted</string>
     <string name="pref_sort_by_key">sort_by</string>
+
 </resources>
