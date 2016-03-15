@@ -3,17 +3,17 @@ package crappydayproductions.com.popularmovies;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.BinderThread;
 
 import android.support.annotation.Nullable;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
@@ -21,21 +21,15 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.support.v7.widget.Toolbar;
 import android.widget.Toast;
 
-import com.google.android.youtube.player.YouTubeBaseActivity;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerFragment;
-import com.google.android.youtube.player.YouTubePlayerSupportFragment;
-import com.google.android.youtube.player.YouTubePlayerView;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -48,7 +42,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
@@ -61,6 +54,7 @@ public class DetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_detail);
+
 
         if (savedInstanceState == null) {
 
@@ -101,14 +95,18 @@ public class DetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class DetailFragment extends Fragment {
+    public class DetailFragment extends Fragment {
 
         private final String LOG_TAG = DetailFragment.class.getSimpleName();
         private Movie movieData1;
         private Menu menu;
 
-        @Nullable @Bind(R.id.trailer_container) LinearLayout container;
-        @Nullable @Bind(R.id.review_container) LinearLayout rContainer;
+        @Nullable
+        @Bind(R.id.trailer_container)
+        LinearLayout container;
+        @Nullable
+        @Bind(R.id.review_container)
+        LinearLayout rContainer;
 
         //mine
         private static final String SHARE_HASHTAG = " #PopularMoviesApp";
@@ -116,7 +114,6 @@ public class DetailActivity extends AppCompatActivity {
         public DetailFragment() {
             setHasOptionsMenu(true);
         }
-
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -140,6 +137,8 @@ public class DetailActivity extends AppCompatActivity {
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
             int id = item.getItemId();
+
+            int i = 1;
             if (id == R.id.action_share) {
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 Intent shareMovie = getActivity().getIntent();
@@ -152,9 +151,17 @@ public class DetailActivity extends AppCompatActivity {
                 return true;
             }
             if (id == R.id.action_favorite) {
-                //if (movieData1.id == true) {}
-                
-                menu.getItem(id).setIcon(getResources().getDrawable(R.drawable.likefilled));
+                SharedPreferences mPrefs = getActivity().getSharedPreferences("SHARED_KEY", Context.MODE_PRIVATE);
+                SharedPreferences.Editor prefsEditor = mPrefs.edit();
+                if (!mPrefs.contains(movieData1.getId())) {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(movieData1);
+                    prefsEditor.putString(movieData1.getId(), json);
+                    prefsEditor.apply();
+                    Toast.makeText(getActivity().getApplicationContext(), movieData1 + json, Toast.LENGTH_LONG);
+
+
+                }
 
             }
             return super.onOptionsItemSelected(item);
@@ -218,7 +225,6 @@ public class DetailActivity extends AppCompatActivity {
         }
 
 
-
         public class FetchDataTask extends AsyncTask<String, Void, Movie> {
 
             private final String LOG_TAG = FetchDataTask.class.getSimpleName();
@@ -238,7 +244,7 @@ public class DetailActivity extends AppCompatActivity {
                 // Verify it resolves
                 PackageManager packageManager = getActivity().getPackageManager();
                 // TODO: Why the example in documentation set flag = 0?
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent,PackageManager.MATCH_DEFAULT_ONLY);
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(playIntent, PackageManager.MATCH_DEFAULT_ONLY);
                 boolean isIntentSafe = activities.size() > 0;
 
                 // Start an activity if it is safe
@@ -246,7 +252,6 @@ public class DetailActivity extends AppCompatActivity {
                     startActivity(playIntent);
                 }
             }
-
 
 
             private void getTrailerFromJson(String trailerJsonStr)
@@ -292,7 +297,7 @@ public class DetailActivity extends AppCompatActivity {
                 JSONArray resultArray = jsonObject.getJSONArray(RESULTS);
                 int count = resultArray.length();
 
-                for (int i = 0; i < count; i ++) {
+                for (int i = 0; i < count; i++) {
                     // Get JSON object for each review
                     JSONObject reviewJson = resultArray.getJSONObject(i);
 
@@ -300,7 +305,7 @@ public class DetailActivity extends AppCompatActivity {
                     String content = reviewJson.getString(RCONTENT);
                     String url = reviewJson.getString(RURL);
 
-                    Movie.Review review = new Movie.Review(movieID, author, content,url);
+                    Movie.Review review = new Movie.Review(movieID, author, content, url);
 
                     movieData1.reviews.add(review);
                 }
@@ -309,7 +314,9 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             protected Movie doInBackground(String... params) {
 
-                if (params.length == 0) {return null;}
+                if (params.length == 0) {
+                    return null;
+                }
 
                 // get connection
                 HttpURLConnection urlConnection = null;
@@ -391,7 +398,7 @@ public class DetailActivity extends AppCompatActivity {
                     URL reviewURL = new URL(builtReviewUri.toString());
 
                     // Open connection
-                    urlConnection = (HttpURLConnection)reviewURL.openConnection();
+                    urlConnection = (HttpURLConnection) reviewURL.openConnection();
                     urlConnection.setRequestMethod("GET");
                     urlConnection.connect();
 
@@ -399,25 +406,29 @@ public class DetailActivity extends AppCompatActivity {
                     InputStream inputStream = urlConnection.getInputStream();
                     StringBuffer buffer = new StringBuffer();
 
-                    if (inputStream == null) {return  null;}
+                    if (inputStream == null) {
+                        return null;
+                    }
 
                     reader = new BufferedReader(new InputStreamReader(inputStream));
                     String line;
 
                     // Read input stream into string;
-                    while((line = reader.readLine()) != null) {
+                    while ((line = reader.readLine()) != null) {
                         buffer.append(line + "\n");
                     }
 
-                    if (buffer == null) {return null;}
+                    if (buffer == null) {
+                        return null;
+                    }
 
                     // Get JSON String out of buffer
                     reviewJsonStr = buffer.toString();
 
-                     } catch (IOException e) {
+                } catch (IOException e) {
                     Log.e("PlaceholderFragment", "Error ", e);
                     e.printStackTrace();
-                    return  null;
+                    return null;
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect();
@@ -486,4 +497,5 @@ public class DetailActivity extends AppCompatActivity {
             }
         }
     }
+
 }

@@ -9,11 +9,26 @@ import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
+    private static final String DETAIL_TAG = "DTAG";
+    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if  (findViewById(R.id.container) != null) {
+           mTwoPane = true;
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.container, new DetailFragment())
+                        .commit();
+            }
+        } else {
+            mTwoPane = false;
+        }
+
+
+
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
     }

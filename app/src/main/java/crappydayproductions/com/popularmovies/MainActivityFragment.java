@@ -1,5 +1,6 @@
 package crappydayproductions.com.popularmovies;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -20,6 +21,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -35,6 +37,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -97,7 +100,11 @@ public class MainActivityFragment extends Fragment {
         FetchTitleTask titleTask = new FetchTitleTask();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_by = prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default));
-        titleTask.execute(sort_by);
+        if (!sort_by.equals("favorites")) {
+            titleTask.execute(sort_by);
+        }else {
+            favPopulate();
+        }
 
     }
 
@@ -107,6 +114,17 @@ public class MainActivityFragment extends Fragment {
     public void onStart() {
         super.onStart();
         updateTitles();
+    }
+
+    private void favPopulate() {
+        SharedPreferences mPref = getActivity().getSharedPreferences("SHARED_KEY", Context.MODE_PRIVATE);
+        Map<String,String> movieMap = (Map<String, String>) mPref.getAll();
+        Gson gson = new Gson();
+        mAdapter.clear();
+        for (Map.Entry<String, String> entry : movieMap.entrySet()) {
+            Movie movie = gson.fromJson(entry.getValue(), Movie.class);
+            mData.add(movie);
+        }
     }
 
 
