@@ -1,6 +1,6 @@
 package crappydayproductions.com.popularmovies;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -61,9 +61,7 @@ public class DetailFragment extends Fragment {
     //mine
     private static final String SHARE_HASHTAG = " #PopularMoviesApp";
 
-    public DetailFragment() {
-        setHasOptionsMenu(true);
-    }
+    //public DetailFragment() {setHasOptionsMenu(true);}
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -83,6 +81,17 @@ public class DetailFragment extends Fragment {
             Log.d(LOG_TAG, "Share Action Provider is null?");
         }
     }
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        SharedPreferences mPrefs = getActivity().getSharedPreferences("SHARED_KEY", Context.MODE_PRIVATE);
+        MenuItem mi = (MenuItem) menu.findItem(R.id.action_favorite);
+        if (!mPrefs.contains(movieData1.getId())) {
+            mi.setIcon(R.drawable.like);
+        }else {
+            mi.setIcon(R.drawable.likefilled);
+        }
+
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -93,12 +102,18 @@ public class DetailFragment extends Fragment {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             Intent shareMovie = getActivity().getIntent();
             Movie shareMovieTitle = shareMovie.getParcelableExtra("movie");
-            String movieTitle = shareMovieTitle.getTitle();
-            shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_TEXT, "I watched " + movieTitle + " and I want you to watch it too! " + SHARE_HASHTAG);
-            startActivity(Intent.createChooser(shareIntent, getString(R.string.action_share)));
-            return true;
+            if (shareMovieTitle == null) {
+                shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, SHARE_HASHTAG);
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.action_share)));
+            }else {
+                String movieTitle = shareMovieTitle.getTitle();
+                shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "I watched " + movieTitle + " and I want you to watch it too! " + SHARE_HASHTAG);
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.action_share)));
+            }return true;
         }
         if (id == R.id.action_favorite) {
             SharedPreferences mPrefs = getActivity().getSharedPreferences("SHARED_KEY", Context.MODE_PRIVATE);
@@ -108,11 +123,14 @@ public class DetailFragment extends Fragment {
                 String json = gson.toJson(movieData1);
                 prefsEditor.putString(movieData1.getId(), json);
                 prefsEditor.apply();
-                Toast.makeText(getActivity().getApplicationContext(), movieData1 + json, Toast.LENGTH_LONG);
-
-
+                Toast.makeText(getActivity().getApplicationContext(), "Added!", Toast.LENGTH_LONG).show();
+                getActivity().invalidateOptionsMenu();
+            }else {
+                prefsEditor.remove(movieData1.getId());
+                prefsEditor.apply();
+                Toast.makeText(getActivity().getApplicationContext(), "This movie is now removed from your favorites", Toast.LENGTH_LONG).show();
+                getActivity().invalidateOptionsMenu();
             }
-
         }
         return super.onOptionsItemSelected(item);
     }
@@ -126,9 +144,7 @@ public class DetailFragment extends Fragment {
         ButterKnife.bind(this, rootView);
         if (bundle != null) {
             movieData1 = bundle.getParcelable("movie");
-
             setHasOptionsMenu(true);
-
             final String movieTitle = movieData1.getTitle();
             //String movieImage = movieData.getImage();
             final String movieDescription = movieData1.getDescription();
@@ -160,25 +176,24 @@ public class DetailFragment extends Fragment {
             ImageView poster = ((ImageView) rootView.findViewById(R.id.poster_image));
             Picasso.with(getActivity()).load(moviePoster).into(poster);
 
+            try {
+                FetchDataTask fetchDataTask = new FetchDataTask();
+                String API_KEY = "5c50c47fea062190f9f743911ae71820";
+                fetchDataTask.execute(API_KEY);
+            }catch (Exception e) {
+
+            }
         } else {
             //Toast.makeText(getContext(), "FAIL", Toast.LENGTH_SHORT).show();
         }
         return rootView;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        FetchDataTask fetchDataTask = new FetchDataTask();
-        String API_KEY = "5c50c47fea062190f9f743911ae71820";
-        fetchDataTask.execute(API_KEY);
-    }
 
 
     public class FetchDataTask extends AsyncTask<String, Void, Movie> {
 
         private final String LOG_TAG = FetchDataTask.class.getSimpleName();
-
 
         private void playTrailerIntent(String key) {
 

@@ -66,6 +66,7 @@ public class SettingsActivity extends PreferenceActivity
             preference.setSummary(stringValue);
         }
         return true;
+
     }
 
 }

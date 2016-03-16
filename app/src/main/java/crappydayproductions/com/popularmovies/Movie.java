@@ -105,6 +105,8 @@ public class Movie implements Parcelable {
         }
     };
 
+
+
     //Trailer
     public static class Trailer implements Parcelable {
         String movieId;

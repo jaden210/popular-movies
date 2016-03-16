@@ -3,11 +3,13 @@ package crappydayproductions.com.popularmovies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,6 +51,11 @@ public class MainActivityFragment extends Fragment {
     private GridView gridView;
     private ArrayList<Movie> mData = new ArrayList<Movie>();
     private Movie[] movies;
+    private boolean mTablet;
+
+    public interface Callback {
+        public void onItemSelected(int position, MovieAdapter mAdapter);
+    }
 
     public MainActivityFragment() {
     }
@@ -81,19 +88,41 @@ public class MainActivityFragment extends Fragment {
         GridView gridView = (GridView) rootView.findViewById(R.id.gridview_title);
         //mData = new ArrayList<Movie>();
         mAdapter = new MovieAdapter(getActivity(),R.layout.grid_item_title, mData);
+        updateTitles();
         gridView.setAdapter(mAdapter);
-
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), DetailActivity.class);
-                Movie movie = mAdapter.getItem(position);
-                intent.putExtra("movie", movie);
-                startActivity(intent);
+                mTablet = ((MainActivity) getActivity()).isTablet();
+                if (!mTablet) {
+                    Intent intent = new Intent();
+                    Movie movie = mAdapter.getItem(position);
+                    intent.setClassName("crappydayproductions.com.popularmovies", "crappydayproductions.com.popularmovies.DetailActivity");
+                    intent.putExtra("movie", movie);
+                    startActivity(intent);
+                } else {
+                    Bundle args = new Bundle();
+                    // Pass the selected Movie object to the MovieDetailFragment
+                    args.putParcelable("movie", mAdapter.getItem(position));
+                    DetailFragment movieDetailsFragment = new DetailFragment();
+                    movieDetailsFragment.setArguments(args);
+                    getActivity().getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.container, movieDetailsFragment)
+                            .commit();
+                    //((MainActivity) getActivity()).replaceUI(position);
+                }
+
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        updateTitles();
+        super.onResume();
     }
 
     public void updateTitles() {
@@ -109,18 +138,12 @@ public class MainActivityFragment extends Fragment {
     }
 
 
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateTitles();
-    }
-
     private void favPopulate() {
         SharedPreferences mPref = getActivity().getSharedPreferences("SHARED_KEY", Context.MODE_PRIVATE);
         Map<String,String> movieMap = (Map<String, String>) mPref.getAll();
         Gson gson = new Gson();
         mAdapter.clear();
+        mData.clear();
         for (Map.Entry<String, String> entry : movieMap.entrySet()) {
             Movie movie = gson.fromJson(entry.getValue(), Movie.class);
             mData.add(movie);
@@ -269,6 +292,7 @@ public class MainActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Movie[] result ) {
+            mAdapter.clear();
             if (result != null) {
                 //mAdapter.clear();
                 mAdapter.addAll(result);

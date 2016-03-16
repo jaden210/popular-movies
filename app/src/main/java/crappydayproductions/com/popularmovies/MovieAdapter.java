@@ -42,6 +42,7 @@ public class MovieAdapter extends ArrayAdapter<Movie> {
         View row = convertView;
         ViewHolder holder;
 
+
         if (row == null) {
             LayoutInflater inflater = ((Activity) mContext).getLayoutInflater();
             row = inflater.inflate(layoutResource,parent,false);

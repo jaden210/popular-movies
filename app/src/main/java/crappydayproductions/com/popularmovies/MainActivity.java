@@ -10,7 +10,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends ActionBarActivity {
     private static final String DETAIL_TAG = "DTAG";
-    private boolean mTwoPane;
+    public boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +20,7 @@ public class MainActivity extends ActionBarActivity {
            mTwoPane = true;
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.container, new DetailFragment())
+                        .replace(R.id.container, new DetailFragment())
                         .commit();
             }
         } else {
@@ -54,6 +54,10 @@ public class MainActivity extends ActionBarActivity {
             startActivity(new Intent(this, SettingsActivity.class));
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public boolean isTablet() {
+        return mTwoPane;
     }
 
 }
