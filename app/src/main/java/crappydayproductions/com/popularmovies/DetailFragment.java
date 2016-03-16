@@ -178,7 +178,7 @@ public class DetailFragment extends Fragment {
 
             try {
                 FetchDataTask fetchDataTask = new FetchDataTask();
-                String API_KEY = "5c50c47fea062190f9f743911ae71820";
+                String API_KEY = "";
                 fetchDataTask.execute(API_KEY);
             }catch (Exception e) {
 
